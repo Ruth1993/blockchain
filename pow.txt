@@ -1,0 +1,9 @@
+1. server starts
+2. clients start and connect to server
+3. server broadcast problem (find hash starting with x zeros, but try smaller problem: hash starting with x-y zeros)
+4. clients receive problem and call function from hashcash.py with argument x-y
+5. clients send output of function from hashcash.py to server
+6. server maintains list of whoever is first in solving. 
+7. server times out after a certain time period??
+
+loop 3-7
