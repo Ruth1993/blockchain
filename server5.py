@@ -2,7 +2,7 @@
 import socket
 import select
 import sys
-from _thread import *
+from thread import *
  
 """The first argument AF_INET is the address domain of the
 socket. This is used when we have an Internet Domain with
@@ -79,6 +79,18 @@ def broadcast(message, connection):
                 # if the link is broken, we remove the client
                 remove(clients)
  
+def start_pow():
+	z = input(" How many zeros should the client's hash start with?" )
+    for client in list_of_clients:
+	try:
+		clients.send(message)
+        except:
+                clients.close()
+ 
+                # if the link is broken, we remove the client
+                remove(clients)
+ 
+
 """The following function simply removes the object
 from the list that was created at the beginning of 
 the program"""
