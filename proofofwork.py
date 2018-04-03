@@ -26,4 +26,4 @@ def gen_attempt(z):
             print('Elapsed time:', elap)
         c=c+1
 
-    return (conc_string, elap)
+    return conc_string

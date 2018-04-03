@@ -1,5 +1,6 @@
 # Python program to implement server side of chat room.
 import socket
+import commands
 import select
 import sys
 from thread import *
@@ -80,15 +81,33 @@ def broadcast(message, connection):
                 remove(clients)
  
 def start_pow():
-	z = input(" How many zeros should the client's hash start with?" )
+    z = input("How many zeros should the client's hash start with?")
+    
+    msg_pow = commands.START_POW + commands.DELIM + z
+    
     for client in list_of_clients:
 	try:
-		clients.send(message)
+            client.send(msg_pow.encode())
         except:
-                clients.close()
+            client.close()
  
-                # if the link is broken, we remove the client
-                remove(clients)
+            # if the link is broken, we remove the client
+            remove(client)
+
+def start_minpool():
+    z1 = input("How many zeros should the hash start with? ")
+    z2 = input("How many zeros should the client try to find? ")
+    
+    msg_minpool = commands.START_MINPOOL + commands.DELIM + z1 + commands.DELIM + z2
+    
+    for client in list_of_clients:
+	try:
+            client.send(msg_minpool.encode())
+        except:
+            client.close()
+ 
+            # if the link is broken, we remove the client
+            remove(client)
  
 
 """The following function simply removes the object
@@ -99,7 +118,6 @@ def remove(connection):
         list_of_clients.remove(connection)
  
 while True:
- 
     """Accepts a connection request and stores two parameters, 
     conn which is a socket object for that user, and addr 
     which contains the IP address of the client that just 
@@ -115,7 +133,19 @@ while True:
  
     # creates and individual thread for every user 
     # that connects
-    start_new_thread(clientthread,(conn,addr))    
+    start_new_thread(clientthread,(conn,addr))
+
+    msg_server = input(commands.MSG_SERVER)
+
+    if msg_server == commands.EXIT:
+        break
+    elif msg_server == commands.START_POW:
+        start_pow()
+    elif msg_server == commands.START_MINPOOL:
+        start_minpool()
+    else:
+        print("Wrong input. Please try again.")
+        message = input(commands.MSG_SERVER)
  
 conn.close()
 server.close()

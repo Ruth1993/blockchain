@@ -1,5 +1,6 @@
 import commands
-import socket 
+import time
+import socket
 from threading import Thread 
 from socketserver import ThreadingMixIn 
 
@@ -10,26 +11,37 @@ class ClientThread(Thread):
         Thread.__init__(self) 
         self.ip = ip 
         self.port = port 
-        print("[+] New server socket thread started for " + ip + ":" + str(port))
+        print(str(time.time()) + ": [+] New server socket thread started for " + ip + ":" + str(port))
  
     def run(self): 
         while True : 
-            data = conn.recv(2048) 
-            print("Server received data:", data)
-            MESSAGE = input("Enter server message: ")
-            if MESSAGE == commands.EXIT:
+            data = conn.recv(2048).decode("utf-8")
+            
+            print(str(time.time()) + ": Server received data: ", data)
+
+            if data.startswith(commands.HELLO):
+                #nog even niks
+                test = 3
+            elif data.startswith(commands.SEND_POW):
+                #check if hash is okay?
+                test = 5
+
+            message = input(commands.MSG_SERVER)
+            
+            if message == commands.EXIT:
                 break
-            elif MESSAGE == commands.START_POW:
+            elif message == commands.START_POW:
                 z = input("How many zeros should the client's hash start with? ")
-                send_pow = commands.START_POW + " " + z
+                send_pow = commands.START_POW + commands.DELIM + z
                 conn.send(send_pow.encode())
-            elif MESSAGE == commands.START_MINPOOL:
+            elif message == commands.START_MINPOOL:
                 z1 = input("How many zeros should the hash start with? ")
                 z2 = input("How many zeros should the client try to find? ")
-                problem = "Find hash starting with " + z1 + " zeros. But first try to find " + z2 + " zeros"
-                conn.send(problem.encode())
+                send_minpool = commands.START_MINPOOL + commands.DELIM + z1 + commands.DELIM + z2
+                conn.send(send_minpool.encode())
             else:
-                input("Wrong input. Please try again.")
+                print("Wrong input. Please try again.")
+                message = input(commands.MSG_SERVER)
   
 
 # Multithreaded Python server : TCP Server Socket Program Stub
@@ -48,7 +60,6 @@ while True:
     newthread = ClientThread(ip,port) 
     newthread.start() 
     threads.append(newthread)
-    #print("Connection with", )
  
 for t in threads: 
     t.join() 

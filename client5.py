@@ -1,17 +1,18 @@
 # Python program to implement client side of chat room.
 import socket
+import commands
 import select
 import sys
- 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if len(sys.argv) != 3:
-    print("Correct usage: script, IP address, port number")
-    exit()
-IP_address = str(sys.argv[1])
-Port = int(sys.argv[2])
-server.connect((IP_address, Port))
+
  
 while True:
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if len(sys.argv) != 3:
+        print("Correct usage: script, IP address, port number")
+        exit()
+    IP_address = str(sys.argv[1])
+    Port = int(sys.argv[2])
+    server.connect((IP_address, Port))
  
     # maintains a list of possible input streams
     sockets_list = [sys.stdin, server]
@@ -28,12 +29,23 @@ while True:
  
     for socks in read_sockets:
         if socks == server:
-            message = socks.recv(2048)
-            print(message)
-        else:
-            message = sys.stdin.readline()
-            server.send(message)
-            sys.stdout.write("<You>")
-            sys.stdout.write(message)
-            sys.stdout.flush()
+            data = socks.recv(2048).decode("utf-8")
+            print(data)
+
+            if data.startswith(commands.START_POW) == True:
+            #server sent command to start proof of work assignment
+
+            z = int(data[len(commands.START_POW):].strip()) #take the remaining part of the command as the amount of zeros
+            h = proofofwork.gen_attempt(z) #found hash h
+            send_pow = name + " on ip " + commands.SEND_POW + commands.DELIM + h
+            server.send(send_pow.encode())
+            elif data.startswith(commands.START_MINPOOL) == True:
+                print("minpool started")
+            elif not data == "":
+                print("Error")
+                break;
+            else:
+                #client received een lege string aan data als een andere client connect, hellup :(
+                poep = 5
+
 server.close()
