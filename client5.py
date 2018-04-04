@@ -34,7 +34,7 @@ while True:
 		
             if data.startswith(commands.START_POW) == True:
             	#server sent command to start proof of work assignment
-		print("jaaa, data starts with START POW")
+                print("jaaa, data starts with START POW")
 		
             	z = int(data[len(commands.START_POW):].strip()) #take the remaining part of the command as the amount of zeros
             	h = proofofwork.gen_attempt(z) #found hash h
