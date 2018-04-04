@@ -9,6 +9,8 @@ PROBLEM_POW = "Find hash starting with this many zeros: "
 
 EXIT = "exit"
 
+ERROR_NAME = "Name error"
+
 #client commands
 HELLO = "I'm "
 SEND_POW = "found hash:"
