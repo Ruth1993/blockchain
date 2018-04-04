@@ -86,13 +86,13 @@ def start_pow():
     msg_pow = commands.START_POW + commands.DELIM + z
     
     for client in list_of_clients:
-	 try:
-             client.send(msg_pow.encode())
-         except:
-             client.close()
- 
-             # if the link is broken, we remove the client
-             remove(client)
+        try:
+            client.send(msg_pow.encode())
+        except:
+            client.close()
+
+            # if the link is broken, we remove the client
+            remove(client)
 
 def start_minpool():
     z1 = input("How many zeros should the hash start with? ")
@@ -101,13 +101,13 @@ def start_minpool():
     msg_minpool = commands.START_MINPOOL + commands.DELIM + z1 + commands.DELIM + z2
     
     for client in list_of_clients:
-	 try:
-             client.send(msg_minpool.encode())
-         except:
-             client.close()
- 
-             # if the link is broken, we remove the client
-             remove(client)
+        try:
+            client.send(msg_minpool.encode())
+        except:
+            client.close()
+
+            # if the link is broken, we remove the client
+            remove(client)
  
 
 """The following function simply removes the object
