@@ -1,4 +1,5 @@
 #server commmands
+WELCOME = "Welcome to this part of the CuriousU course! Are you ready to mine some FestivalCoins?" 
 MSG_SERVER = "Enter server message: "
 
 START_POW = "start pow" #start simple proof of work assignment for one client
