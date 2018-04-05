@@ -9,6 +9,11 @@ def send_name():
     name = input("Please insert your name: ")
     msg_hello = commands.HELLO + name
     server.send(msg_hello.encode())
+    
+def send_sol_minpool():
+    h = proofofwork.gen_attempt(z2)
+    send_minpool = commands.SEND_MINPOOL + commands.DELIM + h
+    server.send(send_minpool.encode())
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -24,6 +29,9 @@ server.connect((IP_address, Port))
 print(commands.WELCOME)
 
 send_name()
+
+z1 = -1
+z2 = -1
  
 while True:
  
@@ -53,12 +61,23 @@ while True:
                 #master sent command to start proof of work assignment
                 print("Master started the proof of work assignment")
 
-                z = int(data[len(commands.START_POW):].strip()) #take the remaining part of the command as the amount of zeros
+                z = int(data[len(commands.START_POW):].strip(commands.DELIM)) #take the remaining part of the command as the amount of zeros
                 h = proofofwork.gen_attempt(z) #found hash h
                 send_pow = commands.SEND_POW + commands.DELIM + h
                 server.send(send_pow.encode())
             elif data.startswith(commands.START_MINPOOL) == True:
-                #master sent command to start mining pool assignment
-                print("mining pool started")
+                #master sent command to start or continue mining pool assignment
+                print("Master started the mining pool")
+                
+                z = data[len(commands.START_MINPOOL):].split() #take the remaining part of the command as the amount of zeros
+                z1 = int(z[0])
+                z2 = int(z[1])
+                
+                send_sol_minpool()
+            elif data.startswith(commands.CONT_MINPOOL):
+                print("Thanks for your solution! Please computer solution")
+                send_sol_minpool()
+                
+
 
 server.close()
