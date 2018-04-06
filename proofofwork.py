@@ -2,16 +2,16 @@ import string
 import random
 import hashlib
 import time
+from datetime import datetime
 
 s = 'prev_block'    #previous block in the blockchain
 #x = 'reward_address' #bitcoin uses the reward address as randomization factor saving 16 bytes in coinbase. Each miner should change its reward address for privacy reasons
-x = random.getrandbits(128) #random 128-bit number
 
 #generate random attempt with s (challenge) and x (random 128-bit number to prevent miners from generating the same proof later)
 def gen_attempt(z):
     found = False
     c = 0   #nonce incremented every loop to find new hash
-    #xc = random.getrandbits(128) #random extra nonce
+    x = random.getrandbits(128) #random 128-bit number
 
     start = time.time()
     

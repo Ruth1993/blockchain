@@ -37,27 +37,83 @@ increased as per convenience.
 """
 server.listen(100)
  
-list_of_clients = []
+list_of_clients = {}
+
+#mining pool variables
+mining_pool = {}
+reward = 1
+z1 = -1
+z2 = -1
+found = False
  
 def clientthread(conn, addr):
  
     # sends a message to the client whose user object is conn
-    conn.send((commands.WELCOME).encode())
  
     while True:
             try:
                 message = conn.recv(2048).decode("utf-8")
                 if message:
- 
-                    """prints the message and address of the
-                    user who just sent the message on the server
-                    terminal"""
-                    print("<" + addr[0] + "> " + message)
- 
-                    # Calls broadcast function to send message to all
-                    message_to_send = "<" + addr[0] + "> " + message
-                    broadcast(message_to_send, conn)
- 
+                    
+                    #if connection who sent message is the master, process their input
+                    if list_of_clients[conn] == "master":
+                        broadcast(message)
+                        
+                        #print("ja, dit is de master")
+                        if message.startswith(commands.START_MINPOOL):
+                            #master started the mining pool
+                            print("yeaah, master started the mining pool")
+                            z = message[len(commands.START_MINPOOL):].split()
+                            z1 = int(z[0])
+                            z2 = int(z[1])
+                            
+                            print("z1:" + str(z1))
+                            print("z2:" + str(z2))
+                    else:        
+                        #client sends his/her name
+                        if message.startswith(commands.HELLO):
+                            name = message[len(commands.HELLO):].strip()
+                            
+                            if name not in list_of_clients.values():
+                                list_of_clients[conn] = name
+                                print(addr[0] + " picked the following name: " + name)
+                            else:
+                                conn.send((commands.ERROR_NAME).encode())
+                        elif message.startswith(commands.SEND_MINPOOL):
+                            #client sent a solution for the mining pool
+                            name = list_of_clients[conn] + " (" + addr[0] + ")"
+                            h = message[len(commands.SEND_MINPOOL):].strip(commands.DELIM)
+                            
+                            print(name + " found hash " + h)
+                            print(found)
+                            
+                            #check if hash h starts with z1 or z2 zeros
+                            if h.startswith("".join(["0"]*4)):
+                                found = True
+                                print("Yay. A hash starting with " + z1 + " zeros has been found by " + name)
+                                
+                                #split reward according to the amount of hashes all clients sent
+                                #TODO
+                                print("List of rewards:")
+                                
+                                for client in mining_pool:
+                                    print(list_of_clients[client] + ": " + mining_pool[client] + ": " + mining_pool[client]*reward)
+                            elif h.startswith("".join(["0"]*3)):
+                                #increment client's amount for every time they send in valid hashes.
+                                
+                                conn.send((commands.CONT_MINPOOL).encode())
+                                
+                                if not mining_pool.has_key(conn):
+                                    mining_pool[conn] = 1
+                                else:
+                                    mining_pool[conn] += 1
+                            else:
+                                print("er gaat volgens mij iets mis, hash start niet met z1 of z2 zeros")
+                        else:
+                            """prints the message and address of the
+                            user who just sent the message on the server
+                            terminal"""
+                            print(name + " (" + addr[0] + "): " + message)
                 else:
                     """message may have no content if the connection
                     is broken, in this case we remove the connection"""
@@ -66,56 +122,24 @@ def clientthread(conn, addr):
             except:
                 continue
  
-"""Using the below function, we broadcast the message to all
-clients who's object is not the same as the one sending
-the message """
-def broadcast(message, connection):
-    for clients in list_of_clients:
-        if clients!=connection:
+#broadcast message from server to all clients except the master
+def broadcast(message):
+    for client in list_of_clients:
+        if list_of_clients[client] != "master":
             try:
-                clients.send(message.encode())
+                client.send(message.encode())
             except:
-                clients.close()
+                client.close()
  
                 # if the link is broken, we remove the client
-                remove(clients)
- 
-def start_pow():
-    z = input("How many zeros should the client's hash start with?")
-    
-    msg_pow = commands.START_POW + commands.DELIM + z
-    
-    for client in list_of_clients:
-        try:
-            client.send(msg_pow.encode())
-        except:
-            client.close()
-
-            # if the link is broken, we remove the client
-            remove(client)
-
-def start_minpool():
-    z1 = input("How many zeros should the hash start with? ")
-    z2 = input("How many zeros should the client try to find? ")
-    
-    msg_minpool = commands.START_MINPOOL + commands.DELIM + z1 + commands.DELIM + z2
-    
-    for client in list_of_clients:
-        try:
-            client.send(msg_minpool.encode())
-        except:
-            client.close()
-
-            # if the link is broken, we remove the client
-            remove(client)
- 
+                remove(client)
 
 """The following function simply removes the object
 from the list that was created at the beginning of 
 the program"""
-def remove(connection):
-    if connection in list_of_clients:
-        list_of_clients.remove(connection)
+def remove(conn):
+    if conn in list_of_clients:
+        del list_of_clients[conn]
  
 while True:
     """Accepts a connection request and stores two parameters, 
@@ -126,7 +150,7 @@ while True:
  
     """Maintains a list of clients for ease of broadcasting
     a message to all available people in the chatroom"""
-    list_of_clients.append(conn)
+    list_of_clients[conn] = ""
  
     # prints the address of the user that just connected
     print(addr[0] + " connected")
@@ -134,18 +158,6 @@ while True:
     # creates and individual thread for every user 
     # that connects
     start_new_thread(clientthread,(conn,addr))
-	
-    msg_server = input(commands.MSG_SERVER)
-
-    if msg_server == commands.EXIT:
-        break
-    elif msg_server == commands.START_POW:
-        start_pow()
-    elif msg_server == commands.START_MINPOOL:
-        start_minpool()
-    else:
-        print("Wrong input. Please try again.")
-        message = input(commands.MSG_SERVER)
  
 conn.close()
 server.close()

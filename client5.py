@@ -1,18 +1,39 @@
 # Python program to implement client side of chat room.
 import socket
-import commands
 import select
 import sys
+import commands
+import proofofwork
 
+def send_name():
+    name = input("Please insert your name: ")
+    msg_hello = commands.HELLO + name
+    server.send(msg_hello.encode())
+    
+def send_sol_minpool():
+    h = proofofwork.gen_attempt(z2)
+    send_minpool = commands.SEND_MINPOOL + commands.DELIM + h
+    server.send(send_minpool.encode())
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+if len(sys.argv) != 3:
+    print("Correct usage: script, IP address, port number")
+    exit()
+    
+IP_address = str(sys.argv[1])
+Port = int(sys.argv[2])
+
+server.connect((IP_address, Port))
+
+print(commands.WELCOME)
+
+send_name()
+
+z1 = -1
+z2 = -1
  
 while True:
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if len(sys.argv) != 3:
-        print("Correct usage: script, IP address, port number")
-        exit()
-    IP_address = str(sys.argv[1])
-    Port = int(sys.argv[2])
-    server.connect((IP_address, Port))
  
     # maintains a list of possible input streams
     sockets_list = [sys.stdin, server]
@@ -31,16 +52,32 @@ while True:
         if socks == server:
             data = socks.recv(2048).decode("utf-8")
             print(data)
-		
-            if data.startswith(commands.START_POW) == True:
-            	#server sent command to start proof of work assignment
-                print("jaaa, data starts with START POW")
+            
+            if data == commands.ERROR_NAME:
+                #server sent an error message about the name
+                print("Your name has already been chosen. Please pick another name.")
+                send_name()
+            elif data.startswith(commands.START_POW) == True:
+                #master sent command to start proof of work assignment
+                print("Master started the proof of work assignment")
 
-		z = int(data[len(commands.START_POW):].strip()) #take the remaining part of the command as the amount of zeros
-		h = proofofwork.gen_attempt(z) #found hash h
-		send_pow = name + " on ip " + commands.SEND_POW + commands.DELIM + h
-		server.send(send_pow.encode())
-	    elif data.startswith(commands.START_MINPOOL) == True:
-                print("minpool started")
+                z = int(data[len(commands.START_POW):].strip(commands.DELIM)) #take the remaining part of the command as the amount of zeros
+                h = proofofwork.gen_attempt(z) #found hash h
+                send_pow = commands.SEND_POW + commands.DELIM + h
+                server.send(send_pow.encode())
+            elif data.startswith(commands.START_MINPOOL) == True:
+                #master sent command to start or continue mining pool assignment
+                print("Master started the mining pool")
+                
+                z = data[len(commands.START_MINPOOL):].split() #take the remaining part of the command as the amount of zeros
+                z1 = int(z[0])
+                z2 = int(z[1])
+                
+                send_sol_minpool()
+            elif data.startswith(commands.CONT_MINPOOL):
+                print("Thanks for your solution! Please computer solution")
+                send_sol_minpool()
+                
+
 
 server.close()
