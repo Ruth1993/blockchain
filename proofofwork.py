@@ -24,6 +24,7 @@ def gen_attempt(z):
             print('Hash:', conc_string)
             print('Nonce:', c)
             print('Elapsed time:', elap)
+            print()
         c=c+1
 
     return conc_string
