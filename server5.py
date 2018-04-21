@@ -166,7 +166,6 @@ def clientthread(conn, addr):
                 else:
                     #if the message is empty, the connection might have been broken, so in that case remove the client from list_of_clients
                     remove(conn)
- 
             except:
                 continue
  
@@ -186,6 +185,7 @@ def broadcast(message):
 def remove(conn):
     if conn in list_of_clients:
         del list_of_clients[conn]
+        print("{} disconnected".format(addr[0]))
 
 #increment the amount of valid hashes a miner sent in
 def incr_client_minpool(conn):
